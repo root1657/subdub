@@ -1,0 +1,11 @@
+Flask==2.3.3
+gunicorn==21.2.0
+whisper @ git+https://github.com/openai/whisper.git
+srt==3.5.3
+PyYAML==6.0.1
+ffmpeg-python==0.2.0
+python-dotenv==1.0.0
+requests==2.31.0
+boto3==1.34.0
+docker==7.0.0
+smbprotocol==1.10.0

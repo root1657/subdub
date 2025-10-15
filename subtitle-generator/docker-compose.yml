@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  subtitle-generator:
+    build: .
+    container_name: subtitle-generator
+    restart: unless-stopped
+    ports:
+      - "7070:8080"  # Web GUI
+      - "5000:5000"  # API (internal)
+    volumes:
+      # Unraid user shares for persistence
+      - /mnt/user/appdata/subtitle-generator/config:/app/config
+      - /mnt/user/videos:/app/input-videos:ro  # Configure in GUI
+      - /mnt/user/subtitles:/app/output-subtitles
+      - /mnt/user/appdata/subtitle-generator/transcripts:/app/transcripts
+      # Network shares (configure via Unassigned Devices or GUI)
+      - /mnt/disks/network-videos:/app/network-shares:ro
+    environment:
+      - DEEPL_API_KEY=${DEEPL_API_KEY}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - FLASK_APP=src/app.py
+      - FLASK_ENV=production
+    # GPU support (requires NVIDIA plugin)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Optional: Separate UI container
+  web-ui:
+    build:
+      context: ./web-ui
+      dockerfile: Dockerfile.ui
+    container_name: subtitle-webui
+    restart: unless-stopped
+    ports:
+      - "7070:80"
+    environment:
+      - REACT_APP_API_URL=http://subtitle-generator:5000
+    depends_on:
+      - subtitle-generator
